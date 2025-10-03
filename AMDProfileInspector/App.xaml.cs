@@ -10,7 +10,8 @@ namespace AMDProfileInspector
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            _adlxService = new AdlxServiceStub();   // forces STUB mode
+            _adlxService = new AdlService();
+
             _adlxService.Initialize();
 
             var mw = new MainWindow(_adlxService);
