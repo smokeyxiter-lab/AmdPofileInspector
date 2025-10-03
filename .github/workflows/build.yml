@@ -1,0 +1,39 @@
+name: Build AMDProfileInspector
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore AMDProfileInspector.sln
+
+    - name: Build Release
+      run: dotnet build AMDProfileInspector.sln -c Release --no-restore
+
+    - name: Publish (self-contained EXE)
+      run: dotnet publish AMDProfileInspector.sln -c Release -r win-x64 --self-contained true -o publish
+
+    - name: Copy extra files (VegaPresets + ADLX DLLs)
+      run: |
+        copy VegaPresets.json publish\\
+        if exist ADLX_DLLs copy ADLX_DLLs\\* publish\\
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: AMDProfileInspector-Release
+        path: publish/**
