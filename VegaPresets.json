@@ -1,0 +1,64 @@
+{
+    "presets": [
+        {
+            "name": "Battery",
+            "settings": {
+                "AnisotropicFiltering": false,
+                "AnisotropicLevel": 4,
+                "TextureQuality": "Low",
+                "TessellationLevel": 1,
+                "ShaderCache": true,
+                "VSync": false,
+                "PowerProfile": "PowerSaver"
+            }
+        },
+        {
+            "name": "Balanced",
+            "settings": {
+                "AnisotropicFiltering": true,
+                "AnisotropicLevel": 8,
+                "TextureQuality": "Balanced",
+                "TessellationLevel": 2,
+                "ShaderCache": true,
+                "VSync": false,
+                "PowerProfile": "Balanced"
+            }
+        },
+        {
+            "name": "Performance",
+            "settings": {
+                "AnisotropicFiltering": true,
+                "AnisotropicLevel": 8,
+                "TextureQuality": "High",
+                "TessellationLevel": 3,
+                "ShaderCache": true,
+                "VSync": false,
+                "PowerProfile": "HighPerformance"
+            }
+        },
+        {
+            "name": "MemorySaver",
+            "settings": {
+                "AnisotropicFiltering": true,
+                "AnisotropicLevel": 4,
+                "TextureQuality": "Low",
+                "TessellationLevel": 1,
+                "ShaderCache": true,
+                "VSync": false,
+                "PowerProfile": "Balanced"
+            }
+        },
+        {
+            "name": "Extreme",
+            "settings": {
+                "AnisotropicFiltering": true,
+                "AnisotropicLevel": 16,
+                "TextureQuality": "Ultra",
+                "TessellationLevel": 6,
+                "ShaderCache": true,
+                "VSync": true,
+                "PowerProfile": "HighPerformance"
+            }
+        }
+    ]
+}
