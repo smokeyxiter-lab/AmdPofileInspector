@@ -33,7 +33,7 @@ jobs:
         if exist ADLX_DLLs copy ADLX_DLLs\\* publish\\
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: AMDProfileInspector-Release
         path: publish/**
