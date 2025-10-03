@@ -28,9 +28,12 @@ jobs:
       run: dotnet publish AMDProfileInspector/AMDProfileInspector.csproj -c Release -r win-x64 --self-contained true -o publish
 
     - name: Copy extra files (VegaPresets + ADLX DLLs)
+      shell: pwsh
       run: |
-        copy VegaPresets.json publish\\
-        if exist ADLX_DLLs copy ADLX_DLLs\\* publish\\
+        Copy-Item VegaPresets.json publish/
+        if (Test-Path ADLX_DLLs) {
+          Copy-Item ADLX_DLLs/* publish/ -Force
+        }
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
