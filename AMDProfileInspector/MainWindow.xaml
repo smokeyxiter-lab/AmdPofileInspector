@@ -1,10 +1,10 @@
 <Window x:Class="AMDProfileInspector.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="AMD Profile Inspector (Stub)" Height="350" Width="600">
+        Title="AMD Profile Inspector" Height="350" Width="600">
     <Grid>
         <StackPanel Margin="10">
-            <TextBlock Text="AMD Profile Inspector - Stub Build" FontSize="18" Margin="0,0,0,10"/>
+            <TextBlock Text="AMD Profile Inspector" FontSize="18" Margin="0,0,0,10"/>
             <Button Content="List Adapters" Name="btnList" Click="btnList_Click" Margin="0,0,0,10"/>
             <ListBox Name="lstAdapters" Height="200"/>
         </StackPanel>
