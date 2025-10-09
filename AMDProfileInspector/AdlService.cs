@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace AMDProfileInspector.Services
 {
-    public class AdlService : IDisposable
+    public class AdlService : IAdlxService, IDisposable
     {
         public delegate IntPtr ADL_Main_Memory_Alloc(int size);
 
@@ -25,59 +25,61 @@ namespace AMDProfileInspector.Services
         private bool _initialized;
         private IntPtr _context;
 
+        public event Action<string>? OnError;
+
         public bool Initialize()
         {
-            int result = ADL2_Main_Control_Create(ADL_Alloc, 1, out _context);
-            _initialized = (result == 0 && _context != IntPtr.Zero);
-            return _initialized;
-        }
-
-        public bool ApplyProfile(string exePath, string aa, string af, int lodBias, string texQuality)
-        {
-            if (!_initialized) return false;
-
             try
             {
-                int aaVal = aa switch
-                {
-                    "Off" => 0,
-                    "2x" => 2,
-                    "4x" => 4,
-                    "8x" => 8,
-                    _ => 0
-                };
-                ADL2_ApplicationProfiles_ProfileApplicationProperty_Set(_context, exePath, "AntiAliasing", aaVal);
+                int result = ADL2_Main_Control_Create(ADL_Alloc, 1, out _context);
+                _initialized = (result == 0 && _context != IntPtr.Zero);
+                return _initialized;
+            }
+            catch (DllNotFoundException)
+            {
+                OnError?.Invoke("atiadlxx.dll not found.");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                OnError?.Invoke($"ADL init error: {ex.Message}");
+                return false;
+            }
+        }
 
-                int afVal = af switch
-                {
-                    "Off" => 0,
-                    "2x" => 2,
-                    "4x" => 4,
-                    "8x" => 8,
-                    "16x" => 16,
-                    _ => 0
-                };
-                ADL2_ApplicationProfiles_ProfileApplicationProperty_Set(_context, exePath, "AnisotropicFiltering", afVal);
-
-                int texVal = texQuality switch
-                {
-                    "High" => 0,
-                    "Balanced" => 1,
-                    "Performance" => 2,
-                    _ => 0
-                };
-                ADL2_ApplicationProfiles_ProfileApplicationProperty_Set(_context, exePath, "TextureQuality", texVal);
-
-                ADL2_ApplicationProfiles_ProfileApplicationProperty_Set(_context, exePath, "LOD_Bias", lodBias);
-
-                Console.WriteLine($"[ADL] Applied profile to {exePath} (AA={aa}, AF={af}, LOD={lodBias}, Tex={texQuality})");
+        public bool ApplySetting(string adapterId, SettingKey key, object value)
+        {
+            if (!_initialized) return false;
+            try
+            {
+                ADL2_ApplicationProfiles_ProfileApplicationProperty_Set(_context, adapterId, key.ToString(), Convert.ToInt32(value));
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error applying profile: " + ex.Message);
+                OnError?.Invoke($"Error applying {key}: {ex.Message}");
                 return false;
             }
+        }
+
+        public object? QuerySetting(string adapterId, SettingKey key)
+        {
+            // Not implemented — ADL querying would go here.
+            return null;
+        }
+
+        public IEnumerable<AdapterInfo> GetAdapters()
+        {
+            // Simplified — in a real ADL integration, this would query the driver.
+            return new[]
+            {
+                new AdapterInfo("AMD_ADL_0", "AMD", "Radeon (via ADL)", false)
+            };
+        }
+
+        public AdapterCapabilities GetCapabilities(string adapterId)
+        {
+            return new AdapterCapabilities(true, true, true, true);
         }
 
         public void Dispose()
