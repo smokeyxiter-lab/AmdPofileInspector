@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AMDProfileInspector.Services;
 
 namespace AMDProfileInspector.Services
 {
@@ -10,7 +9,7 @@ namespace AMDProfileInspector.Services
         private readonly List<AdapterInfo> _adapters;
         private readonly Dictionary<(string, SettingKey), object> _store = new();
 
-        public event Action<string> OnError;
+        public event Action<string>? OnError;
 
         public AdlxServiceStub()
         {
@@ -45,23 +44,26 @@ namespace AMDProfileInspector.Services
                 OnError?.Invoke($"Adapter not found: {adapterId}");
                 return new AdapterCapabilities(false, false, false, false);
             }
-            if (info.AdapterId == "AMDVEGA3")
-                return new AdapterCapabilities(true, true, true, true);
-            return new AdapterCapabilities(true, false, false, false);
+
+            return info.AdapterId == "AMDVEGA3"
+                ? new AdapterCapabilities(true, true, true, true)
+                : new AdapterCapabilities(true, false, false, false);
         }
 
         public bool ApplySetting(string adapterId, SettingKey key, object value)
         {
-            var info = _adapters.FirstOrDefault(a => a.AdapterId == adapterId);
-            if (info == null) { OnError?.Invoke($"Adapter not found: {adapterId}"); return false; }
+            if (!_adapters.Any(a => a.AdapterId == adapterId))
+            {
+                OnError?.Invoke($"Adapter not found: {adapterId}");
+                return false;
+            }
             _store[(adapterId, key)] = value;
             return true;
         }
 
-        public object QuerySetting(string adapterId, SettingKey key)
+        public object? QuerySetting(string adapterId, SettingKey key)
         {
-            if (_store.TryGetValue((adapterId, key), out var val)) return val;
-            return null;
+            return _store.TryGetValue((adapterId, key), out var val) ? val : null;
         }
 
         public void Dispose() { }
