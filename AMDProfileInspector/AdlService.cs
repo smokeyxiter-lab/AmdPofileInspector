@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace AMDProfileInspector.Services
 {
-    public class AdlService : IAdlxService, IDisposable
+    public class AdlService : IAdlxService
     {
         public delegate IntPtr ADL_Main_Memory_Alloc(int size);
 
@@ -29,57 +30,64 @@ namespace AMDProfileInspector.Services
 
         public bool Initialize()
         {
-            try
+            int result = ADL2_Main_Control_Create(ADL_Alloc, 1, out _context);
+            _initialized = (result == 0 && _context != IntPtr.Zero);
+            return _initialized;
+        }
+
+        public IEnumerable<AdapterInfo> GetAdapters()
+        {
+            // Minimal stub; in a full build this would query actual hardware
+            return new List<AdapterInfo>
             {
-                int result = ADL2_Main_Control_Create(ADL_Alloc, 1, out _context);
-                _initialized = (result == 0 && _context != IntPtr.Zero);
-                return _initialized;
-            }
-            catch (DllNotFoundException)
-            {
-                OnError?.Invoke("atiadlxx.dll not found.");
-                return false;
-            }
-            catch (Exception ex)
-            {
-                OnError?.Invoke($"ADL init error: {ex.Message}");
-                return false;
-            }
+                new AdapterInfo("AMDVEGA3", "AMD", "Radeon Vega 3 Graphics", true)
+            };
+        }
+
+        public AdapterCapabilities GetCapabilities(string adapterId)
+        {
+            // Simple hardcoded support for Vega 3
+            return new AdapterCapabilities(true, true, true, true);
         }
 
         public bool ApplySetting(string adapterId, SettingKey key, object value)
         {
-            if (!_initialized) return false;
+            if (!_initialized)
+            {
+                OnError?.Invoke("ADL not initialized.");
+                return false;
+            }
+
             try
             {
-                ADL2_ApplicationProfiles_ProfileApplicationProperty_Set(_context, adapterId, key.ToString(), Convert.ToInt32(value));
+                string exePath = adapterId; // for ADL, this represents the target app path
+                switch (key)
+                {
+                    case SettingKey.AnisotropicFiltering:
+                        ADL2_ApplicationProfiles_ProfileApplicationProperty_Set(_context, exePath, "AnisotropicFiltering", Convert.ToInt32(value));
+                        break;
+                    case SettingKey.TextureQuality:
+                        ADL2_ApplicationProfiles_ProfileApplicationProperty_Set(_context, exePath, "TextureQuality", Convert.ToInt32(value));
+                        break;
+                    case SettingKey.AnisotropicLevel:
+                        ADL2_ApplicationProfiles_ProfileApplicationProperty_Set(_context, exePath, "AnisotropicLevel", Convert.ToInt32(value));
+                        break;
+                    default:
+                        break;
+                }
                 return true;
             }
             catch (Exception ex)
             {
-                OnError?.Invoke($"Error applying {key}: {ex.Message}");
+                OnError?.Invoke("Error applying setting: " + ex.Message);
                 return false;
             }
         }
 
         public object? QuerySetting(string adapterId, SettingKey key)
         {
-            // Not implemented — ADL querying would go here.
+            // Stub — real implementation would query ADL for current value
             return null;
-        }
-
-        public IEnumerable<AdapterInfo> GetAdapters()
-        {
-            // Simplified — in a real ADL integration, this would query the driver.
-            return new[]
-            {
-                new AdapterInfo("AMD_ADL_0", "AMD", "Radeon (via ADL)", false)
-            };
-        }
-
-        public AdapterCapabilities GetCapabilities(string adapterId)
-        {
-            return new AdapterCapabilities(true, true, true, true);
         }
 
         public void Dispose()
