@@ -6,6 +6,7 @@ namespace AMDProfileInspector
     public partial class MainWindow : Window
     {
         private readonly IAdlxService _service;
+
         public MainWindow(IAdlxService service)
         {
             InitializeComponent();
@@ -16,9 +17,7 @@ namespace AMDProfileInspector
         {
             lstAdapters.Items.Clear();
             foreach (var a in _service.GetAdapters())
-            {
                 lstAdapters.Items.Add($"{a.Name} ({a.Vendor}) - Integrated: {a.IsIntegrated}");
-            }
         }
     }
 }
